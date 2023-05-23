@@ -11,7 +11,7 @@ import java.util.Map;
 
 @Component
 public class JwtUtil {
-    private String secretKey = "yourSecretKey";
+    private String secretKey = "mySecretKey";
     private long expirationTime = 864_000_000; // 10 days
 
     public String generateToken(UserDetails userDetails) {
