@@ -21,7 +21,7 @@ Users can view the current bank balance and transaction details.`
 
 ## Framework
 
-For this Banking Application, we are using Spring Boot frameowrk of Java.
+For this Banking Application, we are using Spring Boot framework of Java.
 
 ---
 
