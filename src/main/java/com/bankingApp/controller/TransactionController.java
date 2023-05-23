@@ -1,63 +1,56 @@
 package com.bankingApp.controller;
 
-import com.bankingApp.model.Transaction;
 import com.bankingApp.model.User;
-import com.bankingApp.repository.TransactionRepository;
 import com.bankingApp.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.bankingApp.service.TransactionService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.time.LocalDateTime;
+import java.security.Principal;
 
 @RestController
-@RequestMapping("/transactions")
+@RequestMapping("/api/transactions")
 public class TransactionController {
-
-    @Autowired
     private UserRepository userRepository;
+    private TransactionService transactionService;
 
-    @Autowired
-    private TransactionRepository transactionRepository;
-
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<Transaction>> getTransactions(@PathVariable Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        List<Transaction> transactions = transactionRepository.findByUserId(user.getId());
-        return ResponseEntity.ok(transactions);
+    public TransactionController(UserRepository userRepository, TransactionService transactionService) {
+        this.userRepository = userRepository;
+        this.transactionService = transactionService;
     }
 
-    @PostMapping("/{userId}/deposit")
-    public ResponseEntity<String> deposit(@PathVariable Long userId, @RequestBody BigDecimal amount) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    @PostMapping("/withdraw")
+    public ResponseEntity<String> withdrawal(Principal principal, @RequestParam double amount) {
+        String username = principal.getName();
+        User user = userRepository.findByUsername(username);
 
-        Transaction transaction = new Transaction();
-        transaction.setUser(user);
-        transaction.setAmount(amount);
-        transaction.setTransactionDate(LocalDateTime.now());
+        if (amount <= 0) {
+            return ResponseEntity.badRequest().body("Invalid withdrawal amount");
+        }
 
-        transactionRepository.save(transaction);
+        double currentBalance = user.getBalance();
+        if (currentBalance < amount) {
+            return ResponseEntity.badRequest().body("Insufficient balance");
+        }
 
-        return ResponseEntity.ok("Deposit successful");
-    }
-
-    @PostMapping("/{userId}/withdraw")
-    public ResponseEntity<String> withdraw(@PathVariable Long userId, @RequestBody BigDecimal amount) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Transaction transaction = new Transaction();
-        transaction.setUser(user);
-        transaction.setAmount(amount.negate());
-        transaction.setTransactionDate(LocalDateTime.now());
-
-        transactionRepository.save(transaction);
+        // Perform withdrawal transaction
+        transactionService.withdrawal(user, amount);
 
         return ResponseEntity.ok("Withdrawal successful");
+    }
+
+    @PostMapping("/deposit")
+    public ResponseEntity<String> deposit(Principal principal, @RequestParam double amount) {
+        String username = principal.getName();
+        User user = userRepository.findByUsername(username);
+
+        if (amount <= 0) {
+            return ResponseEntity.badRequest().body("Invalid deposit amount");
+        }
+
+        // Perform deposit transaction
+        transactionService.deposit(user, amount);
+
+        return ResponseEntity.ok("Deposit successful");
     }
 }
