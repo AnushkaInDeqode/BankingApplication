@@ -7,12 +7,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+
+import java.security.Principal;
 
 
 @RestController
@@ -51,5 +50,12 @@ public class AuthenticationController {
         final UserDetails userDetails = userService.loadUserByUsername(authenticationRequest.getUsername());
         final String token = jwtUtil.generateToken(userDetails);
         return ResponseEntity.ok(new AuthenticationResponse(token));
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getCurrentBalance(Principal principal) {
+        String username = principal.getName();
+        double balance = userService.getCurrentBalance(username);
+        return ResponseEntity.ok(balance);
     }
 }
