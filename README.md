@@ -50,7 +50,7 @@ In this project we have used following dependencies :-
     - Request Body : User login credentials
     - Response Body : JWT token for authentication
   - Get current user's account balance:
-    - URL : GET - /api/balance
+    - URL : GET - /api/authenticate
   - Perform a deposit:
     - URL : POST - /api/transactions/deposit
     - Request Body : Deposit details (amount)
